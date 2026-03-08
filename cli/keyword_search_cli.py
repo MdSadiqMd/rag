@@ -8,6 +8,7 @@ from algos._2_tf_idf import (
     tf_command,
     idf_command,
     tf_idf_command,
+    bm25_idf_command,
 )
 
 
@@ -33,6 +34,13 @@ def main() -> None:
     tfidf_parser.add_argument("doc_id", type=int, help="ID of the document")
     tfidf_parser.add_argument("term", type=str, help="Term to lookup")
 
+    bm25_idf_parser = subparsers.add_parser(
+        "bm25idf", help="Get BM25 IDF score for a given term"
+    )
+    bm25_idf_parser.add_argument(
+        "term", type=str, help="Term to get BM25 IDF score for"
+    )
+
     args = parser.parse_args()
     match args.command:
         case "search":
@@ -48,6 +56,8 @@ def main() -> None:
             idf_command(args.query)
         case "tfidf":
             tf_idf_command(args.doc_id, args.term)
+        case "bm25idf":
+            bm25_idf_command(args.term)
         case _:
             parser.print_help()
 
