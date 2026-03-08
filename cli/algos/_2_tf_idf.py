@@ -21,13 +21,13 @@ class InvertedIndex:
         self.docmap[doc_id] = text
 
     def get_document(self, term: str) -> set[int]:
-        return sorted(list(self.index[term]))
+        return self.index.get(term, set())
 
     def build(self):
         movies = load_movies()
         for movie in movies:
             doc_id = movie["id"]
-            text = f"{movie["title"] + " " + movie["description"]}"
+            text = f"{movie['title']} {movie['description']}"
             self.__add_document(doc_id, text)
         self.__save()
 
@@ -38,12 +38,18 @@ class InvertedIndex:
         with open(self.docmap_path, "wb") as f:
             pickle.dump(self.docmap, f)
 
+    def load(self):
+        with open(self.index_path, "rb") as f:
+            self.index = pickle.load(f)
+        with open(self.docmap_path, "rb") as f:
+            self.docmap = pickle.load(f)
+
 
 def build_command():
     idx = InvertedIndex()
     idx.build()
     docs = idx.get_document("merida")
-    print(f"First document for token 'merida'={docs[0]}")
+    print(f"First document for token 'merida'={sorted(docs)[0]}")
 
 
 def clean_text(text: str) -> str:
@@ -58,22 +64,42 @@ def tokenize_text(text: str) -> list[str]:
     return [stemmer.stem(tok) for tok in tokens]
 
 
-def has_matching_tokens(query_tokens: list[str], movie_tokens: list[str]) -> bool:
-    for query_token in query_tokens:
-        for movie_token in movie_tokens:
-            if query_token in movie_token:
-                return True
-    return False
-
-
 def search_movies(query: str, n_results: int = 10) -> list[dict]:
     movies = load_movies()
     stopwords = load_stopwords()
+    idx = InvertedIndex()
+    idx.load()
     res = []
     query_tokens = [tok for tok in tokenize_text(query) if tok not in stopwords]
+    if not query_tokens:
+        return res
+
+    candidate_docs = set()
+    for q in query_tokens:
+        candidate_docs.update(idx.get_document(q))
+
     for movie in movies:
-        if has_matching_tokens(query_tokens, tokenize_text(movie["title"])):
+        if movie["id"] in candidate_docs:
             res.append(movie)
         if len(res) >= n_results:
             break
+
+    return res
+
+
+def search_command(query, n_results):
+    idx = InvertedIndex().load()
+    seen, res = set(), []
+    query_tokens = tokenize_text(query)
+    for qt in query_tokens:
+        matching_docs_ids = idx.get_documents(qt)
+        for matching_doc_id in matching_docs_ids:
+            if matching_doc_id in seen:
+                continue
+            seen.add(matching_doc_id)
+            matching_doc = idx.docmap[matching_doc_id]
+            res.append(matching_doc)
+
+            if len(res) >= n_results:
+                return res
     return res
