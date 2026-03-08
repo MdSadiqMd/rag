@@ -2,7 +2,13 @@
 import argparse
 
 # from algos._1_keyword_search import search_movies
-from algos._2_tf_idf import search_movies, build_command, tf_command, idf_command
+from algos._2_tf_idf import (
+    search_movies,
+    build_command,
+    tf_command,
+    idf_command,
+    tf_idf_command,
+)
 
 
 def main() -> None:
@@ -23,6 +29,10 @@ def main() -> None:
     )
     idf_parser.add_argument("query", type=str, help="Search query")
 
+    tfidf_parser = subparsers.add_parser("tfidf", help="Calculate TF-IDF score")
+    tfidf_parser.add_argument("doc_id", type=int, help="ID of the document")
+    tfidf_parser.add_argument("term", type=str, help="Term to lookup")
+
     args = parser.parse_args()
     match args.command:
         case "search":
@@ -36,6 +46,8 @@ def main() -> None:
             tf_command(args.doc_id, args.term)
         case "idf":
             idf_command(args.query)
+        case "tfidf":
+            tf_idf_command(args.doc_id, args.term)
         case _:
             parser.print_help()
 
