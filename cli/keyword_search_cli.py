@@ -2,7 +2,7 @@
 import argparse
 
 # from algos._1_keyword_search import search_movies
-from algos._2_tf_idf import search_movies, build_command, tf_command
+from algos._2_tf_idf import search_movies, build_command, tf_command, idf_command
 
 
 def main() -> None:
@@ -18,6 +18,11 @@ def main() -> None:
     tf_parser.add_argument("doc_id", type=int, help="ID of the document")
     tf_parser.add_argument("term", type=str, help="Term to lookup")
 
+    idf_parser = subparsers.add_parser(
+        "idf", help="Caluclate Inverse document frequency"
+    )
+    idf_parser.add_argument("query", type=str, help="Search query")
+
     args = parser.parse_args()
     match args.command:
         case "search":
@@ -29,6 +34,8 @@ def main() -> None:
             build_command()
         case "tf":
             tf_command(args.doc_id, args.term)
+        case "idf":
+            idf_command(args.query)
         case _:
             parser.print_help()
 
