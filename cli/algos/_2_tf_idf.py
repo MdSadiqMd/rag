@@ -1,7 +1,8 @@
+import token
 from lib.search_utils import CACHE_PATH, load_movies, load_stopwords
 import string
 from nltk.stem import PorterStemmer
-from collections import defaultdict
+from collections import defaultdict, Counter
 import pickle
 
 stemmer = PorterStemmer()
@@ -13,15 +14,24 @@ class InvertedIndex:
         self.docmap = {}  # map document id: document
         self.index_path = CACHE_PATH / "index.pkl"
         self.docmap_path = CACHE_PATH / "docmap.pkl"
+        self.term_frequencies = defaultdict(Counter)
+        self.term_frequencies_path = CACHE_PATH / "term_frequencies.pkl"
 
     def __add_document(self, doc_id: int, text: str):
         tokens = tokenize_text(text)
-        for token in set(tokens):
-            self.index[token].add(doc_id)
+        for t in set(tokens):
+            self.index[t].add(doc_id)
         self.docmap[doc_id] = text
+        self.term_frequencies[doc_id].update(tokens)
 
     def get_document(self, term: str) -> set[int]:
         return self.index.get(term, set())
+
+    def get_tf(self, doc_id, term):
+        tokens = tokenize_text(term)
+        if len(tokens) != 1:
+            raise ValueError("Can only have 1 token")
+        return self.term_frequencies[doc_id][tokens[0]]
 
     def build(self):
         movies = load_movies()
@@ -37,19 +47,17 @@ class InvertedIndex:
             pickle.dump(self.index, f)
         with open(self.docmap_path, "wb") as f:
             pickle.dump(self.docmap, f)
+        with open(self.term_frequencies_path, "wb") as f:
+            pickle.dump(self.term_frequencies, f)
 
     def load(self):
         with open(self.index_path, "rb") as f:
             self.index = pickle.load(f)
         with open(self.docmap_path, "rb") as f:
             self.docmap = pickle.load(f)
-
-
-def build_command():
-    idx = InvertedIndex()
-    idx.build()
-    docs = idx.get_document("merida")
-    print(f"First document for token 'merida'={sorted(docs)[0]}")
+        with open(self.term_frequencies_path, "rb") as f:
+            self.term_frequencies = pickle.load(f)
+        return self
 
 
 def clean_text(text: str) -> str:
@@ -103,3 +111,16 @@ def search_command(query, n_results):
             if len(res) >= n_results:
                 return res
     return res
+
+
+def tf_command(doc_id, term):
+    idx = InvertedIndex()
+    idx.load()
+    print(idx.get_tf(doc_id, term))
+
+
+def build_command():
+    idx = InvertedIndex()
+    idx.build()
+    docs = idx.get_document("merida")
+    print(f"First document for token 'merida'={sorted(docs)[0]}")

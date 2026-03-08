@@ -208,3 +208,4 @@ __marimo__/
 data/movies.json
 cache/docmap.pkl
 cache/index.pkl
+cache/term_frequencies.pkl

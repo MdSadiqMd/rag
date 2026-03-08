@@ -2,7 +2,7 @@
 import argparse
 
 # from algos._1_keyword_search import search_movies
-from algos._2_tf_idf import search_movies, build_command
+from algos._2_tf_idf import search_movies, build_command, tf_command
 
 
 def main() -> None:
@@ -14,6 +14,10 @@ def main() -> None:
 
     build_parser = subparsers.add_parser("build", help="Build the TF-IDF index")
 
+    tf_parser = subparsers.add_parser("tf", help="Get term frequency for a document")
+    tf_parser.add_argument("doc_id", type=int, help="ID of the document")
+    tf_parser.add_argument("term", type=str, help="Term to lookup")
+
     args = parser.parse_args()
     match args.command:
         case "search":
@@ -23,6 +27,8 @@ def main() -> None:
                 print(f"{i}. {result['title']}")
         case "build":
             build_command()
+        case "tf":
+            tf_command(args.doc_id, args.term)
         case _:
             parser.print_help()
 
