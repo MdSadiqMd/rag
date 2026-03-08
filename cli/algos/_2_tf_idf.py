@@ -1,4 +1,4 @@
-from lib.search_utils import CACHE_PATH, load_movies, load_stopwords
+from lib.search_utils import CACHE_PATH, load_movies, load_stopwords, BM25_K1
 import string
 from nltk.stem import PorterStemmer
 from collections import defaultdict, Counter
@@ -58,6 +58,10 @@ class InvertedIndex:
         term_doc_count = len(self.index[token])
         # log((N - df + 0.5) / (df + 0.5) + 1)
         return math.log((doc_count - term_doc_count + 0.5) / (term_doc_count + 0.5) + 1)
+
+    def get_bm25_tf(self, doc_id, term, k1=BM25_K1):
+        tf = self.get_tf(doc_id, term)
+        return tf * (k1 + 1) / (tf + k1)
 
     def build(self):
         movies = load_movies()
@@ -164,6 +168,13 @@ def bm25_idf_command(term):
     idx.load()
     bm25idf = idx.get_bm25_idf(term)
     print(f"BM25 IDF score of '{term}': {bm25idf:.2f}")
+
+
+def bm25_tf_command(doc_id, term):
+    idx = InvertedIndex()
+    idx.load()
+    bm25tf = idx.get_bm25_tf(doc_id, term)
+    print(f"BM25 TF score of '{term}' in document '{doc_id}': {bm25tf:.2f}")
 
 
 def build_command():
