@@ -210,3 +210,4 @@ cache/docmap.pkl
 cache/index.pkl
 cache/term_frequencies.pkl
 cache/doc_lengths.pkl
+cache/movie_embeddings.npy

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from algos._3_semantic_search import verify_model, embed_text
+from algos._3_semantic_search import verify_embeddings, verify_model, embed_text
 
 
 def main():
@@ -16,13 +16,18 @@ def main():
         type=str,
         help="Text to be embedded",
     )
+    verify_embeddings_parser = subparsers.add_parser(
+        "verify_embeddings", help="Verifying embeddings"
+    )
     args = parser.parse_args()
 
     match args.command:
-        case "verify":
-            verify_model()
         case "embed_text":
             embed_text(args.text)
+        case "verify":
+            verify_model()
+        case "verify_embeddings":
+            verify_embeddings()
         case _:
             parser.print_help()
 
