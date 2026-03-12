@@ -5,6 +5,7 @@ from algos._3_semantic_search import (
     embed_text,
     embed_query_text,
     search,
+    chunk_text,
 )
 
 
@@ -44,6 +45,18 @@ def main():
         default=5,
         help="limit of the search (default: 5)",
     )
+    chunk_parser = subparsers.add_parser("chunk", help="Chunking")
+    chunk_parser.add_argument(
+        "text",
+        type=str,
+        help="chunk text",
+    )
+    chunk_parser.add_argument(
+        "--chunk",
+        type=int,
+        default=200,
+        help="chunking window",
+    )
     args = parser.parse_args()
 
     match args.command:
@@ -57,6 +70,8 @@ def main():
             embed_query_text(args.query)
         case "search":
             search(args.query, args.limit)
+        case "chunk":
+            chunk_text(args.text, args.chunk)
         case _:
             parser.print_help()
 
