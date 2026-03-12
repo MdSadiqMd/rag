@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import argparse
-from algos._3_semantic_search import verify_embeddings, verify_model, embed_text
+from algos._3_semantic_search import (
+    verify_embeddings,
+    verify_model,
+    embed_text,
+    embed_query_text,
+)
 
 
 def main():
@@ -19,6 +24,14 @@ def main():
     verify_embeddings_parser = subparsers.add_parser(
         "verify_embeddings", help="Verifying embeddings"
     )
+    embed_query_parser = subparsers.add_parser(
+        "embed_query", help="Embedding the Query"
+    )
+    embed_query_parser.add_argument(
+        "query",
+        type=str,
+        help="Query to be embedded",
+    )
     args = parser.parse_args()
 
     match args.command:
@@ -28,6 +41,8 @@ def main():
             verify_model()
         case "verify_embeddings":
             verify_embeddings()
+        case "embed_query":
+            embed_query_text(args.query)
         case _:
             parser.print_help()
 
