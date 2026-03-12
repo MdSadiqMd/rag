@@ -1,3 +1,4 @@
+from collections import defaultdict
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from pathlib import Path
@@ -165,12 +166,15 @@ class ChunkedSemanticSearch(SemanticSearch):
         self.chunk_embeddings_path = Path("cache/chunk_embeddings.npy")
         self.chunk_metadata = None
         self.chunk_metadata_path = Path("cache/chunk_metadata.json")
+        self.movie_index_map = {}  # Maps movie_idx to movie object
 
     def build_chunk_embeddings(self, documents):
         self.documents = documents
         self.document_map = {}
-        for doc in documents:
+        self.movie_index_map = {}
+        for midx, doc in enumerate(documents):
             self.document_map[doc["id"]] = doc
+            self.movie_index_map[midx] = doc
 
         all_chunks = []
         chunk_metadata = []
@@ -185,27 +189,60 @@ class ChunkedSemanticSearch(SemanticSearch):
                 )
 
         self.chunk_embeddings = self.model.encode(all_chunks, show_progress_bar=True)
-        self.chunk_metadata = chunk_metadata
+        self.chunk_metadata = {
+            "chunks": chunk_metadata,
+            "total_chunks": len(all_chunks),
+        }
         np.save(self.chunk_embeddings_path, self.chunk_embeddings)
         with open(self.chunk_metadata_path, "w") as f:
-            json.dump(
-                {"chunks": chunk_metadata, "total_chunks": len(all_chunks)}, f, indent=2
-            )
+            json.dump(self.chunk_metadata, f, indent=2)
         return self.chunk_embeddings
 
     def load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
         self.documents = documents
         self.document_map = {}
-        for doc in documents:
+        self.movie_index_map = {}
+        for midx, doc in enumerate(documents):
             self.document_map[doc["id"]] = doc
+            self.movie_index_map[midx] = doc
 
         if self.chunk_embeddings_path.exists() and self.chunk_metadata_path.exists():
             self.chunk_embeddings = np.load(self.chunk_embeddings_path)
             with open(self.chunk_metadata_path, "r") as f:
-                metadata = json.load(f)
-                self.chunk_metadata = metadata["chunks"]
+                self.chunk_metadata = json.load(f)
             return self.chunk_embeddings
         return self.build_chunk_embeddings(documents)
+
+    def search_chunks(self, query: str, limit: int = 10):
+        query_embedding = self.generate_embedding(query)
+        chunk_scores = []
+        movie_scores = defaultdict(lambda: 0)
+        for idx in range(len(self.chunk_embeddings)):
+            chunk_embedding = self.chunk_embeddings[idx]
+            metadata = self.chunk_metadata["chunks"][idx]
+            midx, cidx = metadata["movie_idx"], metadata["chunk_idx"]
+            similarities = cosine_similarity(query_embedding, chunk_embedding)
+            chunk_scores.append(
+                {"movie_idx": midx, "chunk_idx": cidx, "score": similarities}
+            )
+            movie_scores[midx] = max(movie_scores[midx], similarities)
+        movie_scores_sorted = sorted(
+            movie_scores.items(), key=lambda x: x[1], reverse=True
+        )
+
+        res = []
+        for midx, score in movie_scores_sorted[:limit]:
+            doc = self.movie_index_map[midx]
+            res.append(
+                {
+                    "id": doc["id"],
+                    "title": doc["title"],
+                    "document": doc["description"][:100],
+                    "score": round(score, 4),
+                    "metadata": {},
+                }
+            )
+        return res
 
 
 def embed_chunks():
@@ -213,3 +250,13 @@ def embed_chunks():
     css = ChunkedSemanticSearch()
     embeddings = css.load_or_create_chunk_embeddings(movies)
     print(f"Generated {len(embeddings)} chunked embeddings")
+
+
+def search_chunked(query, limit=5):
+    css = ChunkedSemanticSearch()
+    movies = load_movies()
+    css.load_or_create_chunk_embeddings(movies)
+    results = css.search_chunks(query, limit)
+    for i, res in enumerate(results):
+        print(f"\n{i}. {res['title']} (score: {res['score']:.4f})")
+        print(f"   {res['document']}...")

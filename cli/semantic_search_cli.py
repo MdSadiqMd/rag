@@ -8,6 +8,7 @@ from algos._3_semantic_search import (
     chunk_text,
     chunk_text_semantic,
     embed_chunks,
+    search_chunked,
 )
 
 
@@ -84,6 +85,18 @@ def main():
         help="chunking window",
     )
     embed_chunk_parser = subparsers.add_parser("embed_chunk", help="Embed Chunk")
+    search_chunk_parser = subparsers.add_parser("search_chunk", help="Search Chunk")
+    search_chunk_parser.add_argument(
+        "query",
+        type=str,
+        help="chunk query",
+    )
+    search_chunk_parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="result limit",
+    )
     args = parser.parse_args()
 
     match args.command:
@@ -103,6 +116,8 @@ def main():
             chunk_text_semantic(args.text, args.chunk, args.overlap)
         case "embed_chunk":
             embed_chunks()
+        case "search_chunk":
+            search_chunked(args.query, args.limit)
         case _:
             parser.print_help()
 
