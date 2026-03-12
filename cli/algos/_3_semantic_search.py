@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 from lib.search_utils import load_movies
 from lib.cosine_similarity import cosine_similarity
+import re
 
 
 class SemanticSearch:
@@ -125,5 +126,32 @@ def fixed_size_chunking(text, overlap, chunk_size=200):
 def chunk_text(text, overlap, chunk_size=200):
     chunks = fixed_size_chunking(text, overlap, chunk_size)
     print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks):
+        print(f"{i}. {chunk}")
+
+
+def semantic_chunking(text, max_chunk_size=200, overlap=0):
+    if overlap >= max_chunk_size:
+        raise ValueError("overlap must be less than max_chunk_size")
+
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    if not sentences:
+        return []
+
+    chunks = []
+    step_size = max_chunk_size - overlap
+    i = 0
+    while i < len(sentences):
+        chunk_sentences = sentences[i : i + max_chunk_size]
+        chunks.append(" ".join(chunk_sentences))
+        i += step_size
+        if i >= len(sentences):
+            break
+    return chunks
+
+
+def chunk_text_semantic(text, max_chunk_size=200, overlap=0):
+    chunks = semantic_chunking(text, max_chunk_size, overlap)
+    print(f"Divided {len(text)} characters into {len(chunks)} chunks")
     for i, chunk in enumerate(chunks):
         print(f"{i}. {chunk}")
