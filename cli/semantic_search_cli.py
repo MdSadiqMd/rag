@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 import argparse
 from algos._3_semantic_search import (
     verify_embeddings,
     verify_model,
     embed_text,
     embed_query_text,
+    search,
 )
 
 
@@ -32,6 +32,18 @@ def main():
         type=str,
         help="Query to be embedded",
     )
+    search_parser = subparsers.add_parser("search", help="Searching")
+    search_parser.add_argument(
+        "query",
+        type=str,
+        help="query to be search",
+    )
+    search_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="limit of the search (default: 5)",
+    )
     args = parser.parse_args()
 
     match args.command:
@@ -43,6 +55,8 @@ def main():
             verify_embeddings()
         case "embed_query":
             embed_query_text(args.query)
+        case "search":
+            search(args.query, args.limit)
         case _:
             parser.print_help()
 

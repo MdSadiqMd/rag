@@ -2,6 +2,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 from pathlib import Path
 from lib.search_utils import load_movies
+from lib.cosine_similarity import cosine_similarity
 
 
 class SemanticSearch:
@@ -41,6 +42,26 @@ class SemanticSearch:
             raise ValueError("must have text to create embedding")
         return self.model.encode([text])[0]
 
+    def search(self, query, limit):
+        if self.embeddings is None:
+            raise ValueError(
+                "No embeddings loaded. Call `load_or_create_embeddings` first."
+            )
+
+        query_embedding = self.generate_embedding(query)
+        similarities = []
+        for document_embedding, doc in zip(self.embeddings, self.documents):
+            _similarity = cosine_similarity(query_embedding, document_embedding)
+            similarities.append((_similarity, doc))
+
+        similarities.sort(key=lambda x: x[0], reverse=True)
+        res = []
+        for sc, doc in similarities[:limit]:
+            res.append(
+                {"score": sc, "title": doc["title"], "description": doc["description"]}
+            )
+        return res
+
 
 def verify_model():
     ss = SemanticSearch()
@@ -72,3 +93,13 @@ def embed_query_text(query):
     print(f"Query: {query}")
     print(f"First 5 dimensions: {embedding[:5]}")
     print(f"Shape: {embedding.shape}")
+
+
+def search(query, limit=5):
+    ss = SemanticSearch()
+    movies = load_movies()
+    ss.load_or_create_embeddings(movies)
+    search_results = ss.search(query, limit)
+    for idx, res in enumerate(search_results):
+        print(f"{idx + 1}. {res['title']} (score: {res['score']:.4f})")
+        print(f"   {res['description'][:100]}...")
