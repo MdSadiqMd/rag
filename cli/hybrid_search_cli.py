@@ -1,5 +1,5 @@
 import argparse
-from algos._4_hybrid_search import normalize_scores, weighted_search
+from algos._4_hybrid_search import normalize_scores, weighted_search, rrf_search
 
 
 def main() -> None:
@@ -22,6 +22,17 @@ def main() -> None:
         "--limit", type=int, default=5, help="number of results to return"
     )
 
+    rrf_parser = subparsers.add_parser(
+        name="rrf-search", help="a hybrid search using Reciprocal Rank Fusion"
+    )
+    rrf_parser.add_argument("query", type=str, help="user query to find related docs")
+    rrf_parser.add_argument(
+        "-k", type=int, default=60, help="k parameter for RRF scoring"
+    )
+    rrf_parser.add_argument(
+        "--limit", type=int, default=5, help="number of results to return"
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -31,6 +42,8 @@ def main() -> None:
                 print(f"* {norm_score:.4f}")
         case "weighted-search":
             weighted_search(args.query, args.alpha, args.limit)
+        case "rrf-search":
+            rrf_search(args.query, args.k, args.limit)
         case _:
             parser.print_help()
 
