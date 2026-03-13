@@ -133,10 +133,17 @@ def chunk_text(text, overlap, chunk_size=200):
 
 
 def semantic_chunking(text, max_chunk_size=200, overlap=0):
+    text = text.strip()
+    if not text:
+        return []
     if overlap >= max_chunk_size:
         raise ValueError("overlap must be less than max_chunk_size")
 
     sentences = re.split(r"(?<=[.!?])\s+", text)
+    if not sentences:
+        return []
+
+    sentences = [s.strip() for s in sentences if s.strip()]
     if not sentences:
         return []
 
