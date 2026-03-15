@@ -41,8 +41,8 @@ def main() -> None:
     rrf_parser.add_argument(
         "--rerank-method",
         type=str,
-        choices=["individual"],
-        help="Rerank method: 'individual' uses LLM to score each result individually (0-10)",
+        choices=["individual", "batch"],
+        help="Rerank method: 'individual' uses LLM to score each result individually (0-10), 'batch' ranks all results together in one LLM call",
     )
 
     args = parser.parse_args()

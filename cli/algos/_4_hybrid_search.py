@@ -4,7 +4,7 @@ from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
 from lib.llm import correct_spelling, expand_query, rewrite_query
 from lib.search_utils import load_movies
-from lib.rerank import individual_rerank
+from lib.rerank import individual_rerank, batch_rerank
 
 
 class HybridSearch:
@@ -160,17 +160,22 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
     if rerank_method == "individual":
         print(f"Re-ranking results using individual method...\n")
         results = individual_rerank(query, results)
+    elif rerank_method == "batch":
+        print(f"Re-ranking top {limit} results using batch method...\n")
+        results = batch_rerank(query, results)
+    print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):\n")
 
     for idx, result in enumerate(results[:limit]):
         print(f"{idx+1}. {result['title']}")
         if rerank_method == "individual":
-            print(f"Rerank Score: {result['rerank_score']}/10")
-        else:
-            print(f"RRF Score: {result['rrf_score']:.3f}")
+            print(f"   Re-rank Score: {result['rerank_score']}/10")
+        elif rerank_method == "batch":
+            print(f"   Re-rank Rank: {result['rerank_rank']}")
+        print(f"   RRF Score: {result['rrf_score']:.3f}")
         bm25_rank = result.get("bm25_rank")
         sem_rank = result.get("sem_rank")
         if bm25_rank is not None or sem_rank is not None:
             bm25_rank = bm25_rank if bm25_rank is not None else "N/A"
             sem_rank = sem_rank if sem_rank is not None else "N/A"
-            print(f"BM25 Rank: {bm25_rank}, Semantic Rank: {sem_rank}")
-        print(f"{result['document'][:100]}...")
+            print(f"   BM25 Rank: {bm25_rank}, Semantic Rank: {sem_rank}")
+        print(f"   {result['document'][:100]}...")
