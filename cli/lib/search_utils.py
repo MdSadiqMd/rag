@@ -10,6 +10,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
 STOPWORDS_FILE = DATA_DIR / "stopwords.txt"
 CACHE_PATH = PROJECT_ROOT / "cache"
+PROMPT_PATH = PROJECT_ROOT / "cli" / "prompts"
 
 
 def load_movies() -> list[dict]:
