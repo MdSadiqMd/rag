@@ -2,7 +2,7 @@ import os
 
 from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
-from lib.llm import correct_spelling
+from lib.llm import correct_spelling, rewrite_query
 from lib.search_utils import load_movies
 
 
@@ -143,6 +143,10 @@ def rrf_search(query, k=60, limit=5, enhance=None):
         case "spell":
             new_query = correct_spelling(query)
             print(f"Enhanced query (spell): '{query}' -> '{new_query}'\n")
+            query = new_query
+        case "rewrite":
+            new_query = rewrite_query(query)
+            print(f"Enhanced query (rewrite): '{query}' -> '{new_query}'\n")
             query = new_query
     results = hs.rrf_search(query, k, limit)
     for idx, result in enumerate(results[:limit]):
