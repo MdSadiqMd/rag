@@ -4,6 +4,7 @@ from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
 from lib.llm import correct_spelling, expand_query, rewrite_query
 from lib.search_utils import load_movies
+from lib.rerank import individual_rerank
 
 
 class HybridSearch:
@@ -136,9 +137,10 @@ def combine_rrf_results(bm25_results, sem_results, k=60):
     return sorted(rrf_results.values(), key=lambda x: x["rrf_score"], reverse=True)
 
 
-def rrf_search(query, k=60, limit=5, enhance=None):
+def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
     movies = load_movies()
     hs = HybridSearch(movies)
+
     match enhance:
         case "spell":
             new_query = correct_spelling(query)
@@ -152,11 +154,23 @@ def rrf_search(query, k=60, limit=5, enhance=None):
             new_query = expand_query(query)
             print(f"Enhanced query (expand): '{query}' -> '{new_query}'\n")
             query = new_query
-    results = hs.rrf_search(query, k, limit)
+
+    rrf_limit = limit * 5 if rerank_method else limit
+    results = hs.rrf_search(query, k, rrf_limit)
+    if rerank_method == "individual":
+        print(f"Re-ranking results using individual method...\n")
+        results = individual_rerank(query, results)
+
     for idx, result in enumerate(results[:limit]):
         print(f"{idx+1}. {result['title']}")
-        print(f"RRF Score: {result['rrf_score']:.3f}")
-        bm25_rank = result["bm25_rank"] if result["bm25_rank"] is not None else "N/A"
-        sem_rank = result["sem_rank"] if result["sem_rank"] is not None else "N/A"
-        print(f"BM25 Rank: {bm25_rank}, Semantic Rank: {sem_rank}")
+        if rerank_method == "individual":
+            print(f"Rerank Score: {result['rerank_score']}/10")
+        else:
+            print(f"RRF Score: {result['rrf_score']:.3f}")
+        bm25_rank = result.get("bm25_rank")
+        sem_rank = result.get("sem_rank")
+        if bm25_rank is not None or sem_rank is not None:
+            bm25_rank = bm25_rank if bm25_rank is not None else "N/A"
+            sem_rank = sem_rank if sem_rank is not None else "N/A"
+            print(f"BM25 Rank: {bm25_rank}, Semantic Rank: {sem_rank}")
         print(f"{result['document'][:100]}...")
