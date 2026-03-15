@@ -4,7 +4,7 @@ from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
 from lib.llm import correct_spelling, expand_query, rewrite_query
 from lib.search_utils import load_movies
-from lib.rerank import individual_rerank, batch_rerank
+from lib.rerank import cross_encoder_rerank, individual_rerank, batch_rerank
 
 
 class HybridSearch:
@@ -157,20 +157,27 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
 
     rrf_limit = limit * 5 if rerank_method else limit
     results = hs.rrf_search(query, k, rrf_limit)
-    if rerank_method == "individual":
-        print(f"Re-ranking results using individual method...\n")
-        results = individual_rerank(query, results)
-    elif rerank_method == "batch":
-        print(f"Re-ranking top {limit} results using batch method...\n")
-        results = batch_rerank(query, results)
+    match rerank_method:
+        case "individual":
+            print(f"Re-ranking results using individual method...\n")
+            results = individual_rerank(query, results)
+        case "batch":
+            print(f"Re-ranking top {limit} results using batch method...\n")
+            results = batch_rerank(query, results)
+        case "cross_encoder":
+            print(f"Re-ranking top {limit} results using cross_encoder method...\n")
+            results = cross_encoder_rerank(query, results)
     print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):\n")
 
     for idx, result in enumerate(results[:limit]):
         print(f"{idx+1}. {result['title']}")
-        if rerank_method == "individual":
-            print(f"   Re-rank Score: {result['rerank_score']}/10")
-        elif rerank_method == "batch":
-            print(f"   Re-rank Rank: {result['rerank_rank']}")
+        match rerank_method:
+            case "individual":
+                print(f"   Re-rank Score: {result['rerank_score']}/10")
+            case "batch":
+                print(f"   Re-rank Rank: {result['rerank_rank']}")
+            case "cross_encoder":
+                print(f"   Cross Encoder Score: {result['cross_encoder_score']:.3f}")
         print(f"   RRF Score: {result['rrf_score']:.3f}")
         bm25_rank = result.get("bm25_rank")
         sem_rank = result.get("sem_rank")
