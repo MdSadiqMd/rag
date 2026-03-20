@@ -321,10 +321,22 @@ Implementation Notes
   - Cross-encoder: [-5, 5] (model-dependent, higher = more relevant)
   - LLM individual: [0, 10] (explicit 0-10 scale)
   - LLM batch: [1, N] (rank position in list)
+  - LLM judge: [0, 3] (relevance rating for evaluation)
+
+- Debug mode:
+  - Tracks position of a specific movie title through the search pipeline
+  - Shows position after initial RRF search
+  - Shows position after re-ranking (if applicable)
+  - Useful for understanding how specific documents are ranked
+
+- Evaluation mode:
+  - Uses LLM judge to rate relevance of each result (0-3 scale)
+  - 3 = Highly relevant, 2 = Relevant, 1 = Marginally relevant, 0 = Not relevant
+  - Provides automated quality assessment of search results
+  - Helps compare effectiveness of different search configurations
 """
 
 import os
-from typing import Any
 from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
 from lib.llm import correct_spelling, expand_query, llm_judge, rewrite_query
