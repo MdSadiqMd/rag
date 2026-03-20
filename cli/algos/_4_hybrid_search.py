@@ -327,7 +327,7 @@ import os
 from typing import Any
 from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
-from lib.llm import correct_spelling, expand_query, rewrite_query
+from lib.llm import correct_spelling, expand_query, llm_judge, rewrite_query
 from lib.search_utils import load_movies
 from lib.rerank import cross_encoder_rerank, individual_rerank, batch_rerank
 
@@ -462,7 +462,9 @@ def combine_rrf_results(bm25_results, sem_results, k=60):
     return sorted(rrf_results.values(), key=lambda x: x["rrf_score"], reverse=True)
 
 
-def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None, debug=None):
+def rrf_search(
+    query, k=60, limit=5, enhance=None, rerank_method=None, debug=None, evaluate=None
+):
     if debug:
         print(f"Debugging for movie {debug}")
     movies = load_movies()
@@ -506,11 +508,17 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None, debug=Non
             results = cross_encoder_rerank(query, results)
     print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):\n")
     if debug:
+        found = False
         for idx, r in enumerate(results):
             if r["title"] == debug:
                 found = True
                 break
-    print(f"DEBUG: Reranking position for {debug} is {idx if found else 'not found'}")
+        print(
+            f"DEBUG: Reranking position for {debug} is {idx if found else 'not found'}"
+        )
+
+    if evaluate:
+        formatted_results = []
 
     for idx, result in enumerate(results[:limit]):
         print(f"{idx+1}. {result['title']}")
@@ -529,3 +537,13 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None, debug=Non
             sem_rank = sem_rank if sem_rank is not None else "N/A"
             print(f"   BM25 Rank: {bm25_rank}, Semantic Rank: {sem_rank}")
         print(f"   {result['document'][:100]}...")
+
+        if evaluate:
+            formatted_results.append(
+                f"<result id={idx}>{result['title']}: {result['document'][:100]}</result>"
+            )
+
+    if evaluate:
+        llm_results = llm_judge(query, "\n".join(formatted_results))
+        for idx, r in enumerate(results[:limit]):
+            print(f"{idx+1} {r['title']}: {llm_results[idx]}/3")

@@ -49,6 +49,11 @@ def main() -> None:
         type=str,
         help="Debug method",
     )
+    rrf_parser.add_argument(
+        "--evaluate",
+        action="store_true",
+        help="Run LLM as a Judge",
+    )
 
     args = parser.parse_args()
 
@@ -67,6 +72,7 @@ def main() -> None:
                 args.enhance,
                 args.rerank_method,
                 args.debug,
+                args.evaluate,
             )
         case _:
             parser.print_help()
