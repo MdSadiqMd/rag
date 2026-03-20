@@ -26,7 +26,7 @@ def load_stopwords() -> list[str]:
 
 
 def load_dataset() -> list[str]:
-    with open(STOPWORDS_FILE, "r") as f:
+    with open(PROJECT_ROOT / "data" / "golden_dataset.json", "r") as f:
         data = json.load(f)["test_cases"]
     return data
 

@@ -1,4 +1,5 @@
 import argparse
+from algos import _5_evaluation
 
 
 def main():
@@ -12,7 +13,7 @@ def main():
 
     args = parser.parse_args()
     limit = args.limit
-
+    _5_evaluation.evaluate(limit)
 
 
 if __name__ == "__main__":
