@@ -324,7 +324,7 @@ Implementation Notes
 """
 
 import os
-
+from typing import Any
 from algos._2_tf_idf import InvertedIndex
 from algos._3_semantic_search import ChunkedSemanticSearch
 from lib.llm import correct_spelling, expand_query, rewrite_query
@@ -462,7 +462,9 @@ def combine_rrf_results(bm25_results, sem_results, k=60):
     return sorted(rrf_results.values(), key=lambda x: x["rrf_score"], reverse=True)
 
 
-def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
+def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None, debug=None):
+    if debug:
+        print(f"Debugging for movie {debug}")
     movies = load_movies()
     hs = HybridSearch(movies)
 
@@ -482,6 +484,16 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
 
     rrf_limit = limit * 5 if rerank_method else limit
     results = hs.rrf_search(query, k, rrf_limit)
+    if debug:
+        found = False
+        for idx, r in enumerate(results):
+            if r["title"] == debug:
+                found = True
+                break
+        print(
+            f"DEBUG: Hybrid search position for {debug} is {idx if found else 'not found'}"
+        )
+
     match rerank_method:
         case "individual":
             print(f"Re-ranking results using individual method...\n")
@@ -493,6 +505,12 @@ def rrf_search(query, k=60, limit=5, enhance=None, rerank_method=None):
             print(f"Re-ranking top {limit} results using cross_encoder method...\n")
             results = cross_encoder_rerank(query, results)
     print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):\n")
+    if debug:
+        for idx, r in enumerate(results):
+            if r["title"] == debug:
+                found = True
+                break
+    print(f"DEBUG: Reranking position for {debug} is {idx if found else 'not found'}")
 
     for idx, result in enumerate(results[:limit]):
         print(f"{idx+1}. {result['title']}")
