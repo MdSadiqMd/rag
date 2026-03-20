@@ -25,6 +25,12 @@ def load_stopwords() -> list[str]:
     return data
 
 
+def load_dataset() -> list[str]:
+    with open(STOPWORDS_FILE, "r") as f:
+        data = json.load(f)["test_cases"]
+    return data
+
+
 def format_search_result(
     doc_id: str, title: str, document: str, score: float, **metadata: Any
 ) -> dict[str, Any]:
