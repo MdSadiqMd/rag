@@ -19,8 +19,10 @@ def evaluate(limit):
 
         precision = relevant_count / len(expected_results)
         retrived = ", ".join([r["title"] for r in rrf_results])
+        recall = relevant_count / len(expected_results)
 
         print(query)
         print(f"- Precision@{limit}: {precision}")
+        print(f"- Recall@{limit}: {recall}")
         print(f"- Retrived: {retrived}")
         print(f"- Relevant: {expected_results}")
