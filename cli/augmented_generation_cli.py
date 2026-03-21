@@ -1,4 +1,5 @@
 import argparse
+from algos._6_retrieval_augment_generation import rag
 
 
 def main():
@@ -14,7 +15,7 @@ def main():
 
     match args.command:
         case "rag":
-            query = args.query
+            rag(args.query)
         case _:
             parser.print_help()
 
