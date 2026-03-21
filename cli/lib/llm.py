@@ -44,3 +44,9 @@ def llm_judge(query, formatted_results):
     results = generate_content(prompt, query=query, formatted_results=formatted_results)
     results = json.loads(results)
     return results
+
+
+def question_answer(query, documents):
+    with open(PROMPT_PATH / "question_answer.md", "r") as f:
+        prompt = f.read()
+    return generate_content(prompt, query=query, docs=documents)
