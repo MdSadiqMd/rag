@@ -363,12 +363,13 @@ class HybridSearch:
         bm25_results = self._bm25_search(query, limit * 500)
         sem_results = self.semantic_search.search_chunks(query, limit * 500)
         combined_results = combine_search_results(bm25_results, sem_results)
-        return combined_results
+        return combined_results[:limit]
 
     def rrf_search(self, query, k=60, limit=10):
         bm25_results = self._bm25_search(query, limit * 500)
         sem_results = self.semantic_search.search_chunks(query, limit * 500)
-        return combine_rrf_results(bm25_results, sem_results, k)
+        combined = combine_rrf_results(bm25_results, sem_results, k)
+        return combined[:limit]
 
 
 def normalize_scores(scores):
