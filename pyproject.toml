@@ -10,5 +10,6 @@ dependencies = [
     "google-genai>=1.67.0",
     "nltk==3.9.1",
     "numpy>=2.4.3",
+    "pillow>=12.1.1",
     "sentence-transformers>=5.2.3",
 ]
