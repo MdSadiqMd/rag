@@ -1,4 +1,4 @@
-from lib.llm import question_answer
+from lib.llm import question_answer, summarize_documents
 from algos._4_hybrid_search import HybridSearch
 from lib.search_utils import load_movies
 
@@ -23,7 +23,7 @@ def question_answering(query):
     print(rag_results)
 
 
-def doc_summarization(query, limit=5):
+def document_summarization(query, limit=5):
     movies = load_movies()
     hs = HybridSearch(movies)
     rrf_results = hs.rrf_search(query=query, k=60, limit=limit)
@@ -38,6 +38,6 @@ def doc_summarization(query, limit=5):
         ]
     )
 
-    rag_results = doc_summarization(query=query, documents=documents)
+    rag_results = summarize_documents(query=query, documents=documents)
     print("\nLLM Summary:")
     print(rag_results)
