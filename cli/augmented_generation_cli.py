@@ -3,6 +3,7 @@ from algos._6_retrieval_augment_generation import (
     answer_with_citations,
     question_answering,
     document_summarization,
+    question_answering_detailed,
 )
 
 
@@ -14,6 +15,16 @@ def main():
         "rag", help="Perform RAG (search + generate answer)"
     )
     question_answer_parser.add_argument("query", type=str, help="Search query for RAG")
+
+    question_answer_detailed_parser = subparsers.add_parser(
+        "question", help="Perform RAG (search + generate answer)"
+    )
+    question_answer_detailed_parser.add_argument(
+        "query", type=str, help="Search query for RAG"
+    )
+    question_answer_detailed_parser.add_argument(
+        "--limit", type=int, default=5, help="Limit for returning of query"
+    )
 
     summarization_parser = subparsers.add_parser(
         "summarize", help="Perform RAG (search + summarize)"
@@ -36,6 +47,8 @@ def main():
     match args.command:
         case "rag":
             question_answering(args.query)
+        case "question":
+            question_answering_detailed(args.query, args.limit)
         case "summarize":
             document_summarization(args.query, args.limit)
         case "citations":

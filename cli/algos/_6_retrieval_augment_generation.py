@@ -1,4 +1,9 @@
-from lib.llm import document_citations, question_answer, summarize_documents
+from lib.llm import (
+    document_citations,
+    question_answer,
+    question_answer_detailed,
+    summarize_documents,
+)
 from algos._4_hybrid_search import HybridSearch
 from lib.search_utils import load_movies
 
@@ -20,6 +25,26 @@ def question_answering(query):
 
     rag_results = question_answer(query=query, documents=documents)
     print("\nRAG Response:")
+    print(rag_results)
+
+
+def question_answering_detailed(query, limit):
+    movies = load_movies()
+    hs = HybridSearch(movies)
+    rrf_results = hs.rrf_search(query=query, k=60, limit=limit)
+    print("Search Results:")
+    for res in rrf_results:
+        print(f"- {res['title']}")
+
+    documents = "\n".join(
+        [
+            f"Title: {res['title']}\nDescription: {res['document']}"
+            for res in rrf_results
+        ]
+    )
+
+    rag_results = question_answer_detailed(query=query, documents=documents)
+    print("\nAnswer:")
     print(rag_results)
 
 

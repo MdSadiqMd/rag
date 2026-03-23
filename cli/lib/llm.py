@@ -52,6 +52,12 @@ def question_answer(query, documents):
     return generate_content(prompt, query=query, docs=documents)
 
 
+def question_answer_detailed(query, documents):
+    with open(PROMPT_PATH / "question_answer_detailed.md", "r") as f:
+        prompt = f.read()
+    return generate_content(prompt, question=query, docs=documents)
+
+
 def summarize_documents(query, documents):
     with open(PROMPT_PATH / "summarization.md", "r") as f:
         prompt = f.read()
