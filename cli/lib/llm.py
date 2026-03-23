@@ -56,3 +56,9 @@ def summarize_documents(query, documents):
     with open(PROMPT_PATH / "summarization.md", "r") as f:
         prompt = f.read()
     return generate_content(prompt, query=query, docs=documents)
+
+
+def document_citations(query, documents):
+    with open(PROMPT_PATH / "answer_with_citations.md", "r") as f:
+        prompt = f.read()
+    return generate_content(prompt, query=query, docs=documents)

@@ -1,5 +1,6 @@
 import argparse
 from algos._6_retrieval_augment_generation import (
+    answer_with_citations,
     question_answering,
     document_summarization,
 )
@@ -22,6 +23,14 @@ def main():
         "--limit", type=int, default=5, help="Limit for returning of query"
     )
 
+    citation_parser = subparsers.add_parser(
+        "citations", help="Perform RAG (search + answer)"
+    )
+    citation_parser.add_argument("query", type=str, help="Search query for RAG")
+    citation_parser.add_argument(
+        "--limit", type=int, default=5, help="Limit for returning of query"
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -29,6 +38,8 @@ def main():
             question_answering(args.query)
         case "summarize":
             document_summarization(args.query, args.limit)
+        case "citations":
+            answer_with_citations(args.query, args.limit)
         case _:
             parser.print_help()
 
